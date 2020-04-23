@@ -34,28 +34,51 @@ float maxPotValue = 4095;
 // Potentiometer reacting Timer
 Timer potTimer;
 float slideTime = 0;
-float minSlideTime = 100;
-float maxSlideTime = 1000;
+float minSlideTime = 1000;
+float maxSlideTime = 5000;
 int defaultTime = 1500;
+
+//slideshow / state machine
+PImage img;
+int state = 0;
+//int picState = 1;
+int bigState = 1;
+int littleState = 2;
 
 // mouse click reacting timer
 Timer clickTimer;
-float clickTime = 0;
-float minClickTime = 100;
-float maxClickTime = 1000;
+float clickTime = 3000;
+float r = random(0,100);
+float g = random(100,255);
+float b = random(50,100);
 
 void setup() {
-   size(1000,600);
    // List all the available serial ports
   printArray(Serial.list());
   
   // Set the com port and the baud rate according to the Arduino IDE
   //-- use your port name
   myPort  =  new Serial (this, "COM3",  115200); 
-  
+//-------------------------------------------------
+  size(1000,800);
   // allocating timers
   potTimer = new Timer(defaultTime);
   clickTimer = new Timer(defaultTime);
+  
+  //load image
+  //img = loadImage("healthSlogan");
+}
+
+void draw() {
+  checkSerial();
+  drawBackground();
+  checkTimer(); 
+  //if(state == 0)
+  //  drawPicState();
+  if(state == 1)
+    drawBigState();
+  else if(state == 2)
+    drawLittleState();
 }
 
 // We call this to get the data 
@@ -80,31 +103,56 @@ void checkSerial() {
       // change the pot timer
       slideTime = map(potValue, minPotValue, maxPotValue, minSlideTime, maxSlideTime);
       potTimer.setTimer(int(slideTime));
-      //change the click timer
-      clickTime = map(potValue, minPotValue, maxPotValue, minClickTime, maxClickTime);
+      //setting click timer
       clickTimer.setTimer(int(clickTime));
    }
   }
 } 
 
-void draw() {
-  checkSerial();
-  
-  drawBackground();
-  checkTimer(); 
-}
-
 void drawBackground() {
-   background(0);
+  background(0);
 }
 
 void checkTimer() {
   if(potTimer.expired()) {
-    println("Pot Restart");
     potTimer.start();
+    if(state == 3)
+      state = 1;
+     else
+       state++;
   }
+
   if(clickTimer.expired()) {
-    println("Click Restart");
+    println("\tClick Restart");
     clickTimer.start();
+    fill(r,g,b);
+    rect(0,0, 20,1000);
+    rect(980,0, 20,1000);
   }
+}
+
+//void drawPicState() {
+//  image(img, 20,20);
+//}
+
+
+void drawBigState() {
+  fill(#FFB6C1);
+  textSize(50);
+  rect(200,200, 400,600);
+  text("SOAP IS YOUR FRIEND", 50,50);
+}
+
+void drawLittleState() {
+  fill(#FFC0CB);
+  text("please let the bubbles foam", 50,50);
+  rect(200,200, 300,500);
+  ellipse(100,100, 50,50);
+  ellipse(150,115, 30,30);
+  ellipse(600,350, 10,10);
+  ellipse(570,500, 25,25);
+  ellipse(700,600, 50,50);
+  ellipse(260,200, 60,60);
+  ellipse(625,420, 20,20);
+  ellipse(240,490, 15,15);
 }
